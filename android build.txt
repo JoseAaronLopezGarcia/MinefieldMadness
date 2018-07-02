@@ -1,0 +1,22 @@
+#! /bin/bash
+#cd android-project/jni
+cd jni
+rm -R obj
+rm -R libs
+ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-14
+cd ..
+rm -R libs/arm*
+cp -R jni/libs/* libs/
+ant debug install
+#adb install -r bin/SDLActivity-debug.apk
+
+keytool -genkey -v -keystore release-key.keystore -alias acidsnakedev -keyalg RSA -keysize 2048 -validity 10000
+
+keytool -keystore my-release-key.keystore -list -v
+
+ant release
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore release-key.keystore bin/Minefield_Madness-release-unsigned.apk acidsnakedev
+
+jarsigner -verify -verbose -certs bin/Minefield_Madness-release-unsigned.apk
+
+./opt/android-sdk-linux/build-tools/19.1.0/zipalign -v 4 Minefield_Madness-release-unsigned.apk Minefield_Madness-release.apk
